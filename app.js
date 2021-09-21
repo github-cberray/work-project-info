@@ -1,9 +1,62 @@
 const express = require('express');
 const app = express();
+const morgan = require('morgan');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
+// ROUTE DECLARATIONS
+const projectRoutes=require('./api/routes/projects');
+const resourceRoutes=require('./api/routes/resources');
+const userRoutes=require('./api/routes/users');
+
+// DATABASE CONSTRUCT
+//mongoose.connect("mongodb+srv://MongoDbUser1:_YXF9gFW2nkwqsJ@cluster0.u12zz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority");
+mongoose.connect('mongodb+srv://' + 
+    process.env.MONGO_ATLAS_USER + ':' + 
+    process.env.MONGO_ATLAS_PW + 
+    '@cluster0.u12zz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority');
+    {
+        useMongoClient: true
+    }
+
+// MIDDLEWARE
+// --LOGGING
+app.use(morgan('dev'));
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json());
+
+
+// --CORS Handling
 app.use((req,res,next)=>{
-    res.status(200).json({
-        message: 'It works!'
+    res.header('Access-Control-Allow-Origin','*');
+    res.header('Access-Control-Allow-Headers',
+    'Origin,X-Requested-With, Content-Type, Accept, Authorization');
+    if(req.method==='OPTIONS'){
+        res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, PATCH');
+        return res.status(200).json({});
+    }
+    next();
+});
+
+
+// --ROUTES
+app.use('/projects', projectRoutes);
+app.use('/resources', resourceRoutes);
+app.use('/users', userRoutes);
+
+// --ERROR HANDLING
+app.use((res, req, next)=>{
+    const error = new Error('Not found');
+    error.status=404;
+    next(error);
+});
+
+app.use((error, req, res, next)=>{
+    res.status(error.status||500);
+    res.json({
+        error: {
+            message: error.message
+        }
     });
 });
 

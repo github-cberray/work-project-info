@@ -9,4 +9,4 @@ manage work projects with resources benefits and heirarchy
 6. Connect to Mongo
 7. Build CRUD for project
 8. Repeat 4-7 for resources and for users
-9. 
+9. Add validation of incoming data
